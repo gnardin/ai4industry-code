@@ -1,0 +1,224 @@
+# Multi-Agent Oriented Programming Tutorial
+:toc: right
+:author: 23rd European Agent Systems Summer School
+:date: July 2023
+:source-highlighter: coderay
+:coderay-linenums-mode: inline
+:icons: font
+:prewrap!:
+
+This guide contains practical material for the tutorial _Multi-Agent Oriented Programming_ at https://easss23.fit.cvut.cz[23rd European Agent Systems Summer] School, 2023, Prague.
+
+
+== Smart Room Scenario
+
+The objective is to develop an MAOP system to control the temperature of a room so that it reaches some desired temperature
+
+* The room is equipped with a "Heating, Ventilating and Air  Conditioning" (HVAC), that provides
+
+** the current room temperature
+** operations to start cooling, start heating, and stop the machine
+
+* initially we have one agent that has the goal of maintaining a certain temperature
+
+image:doc/figs/smart-room1.png[]
+
+
+== Agent Dimension (Lab 1)
+
+=== Task 1: Run the initial project for the smart room scenario
+
+The simplest way to run the examples and do the exercises is by using https://gitpod.io/#https://github.com/JaCaMo-EASSS23/code[GitPod, following this link] (a github account is required). You can also work locally by cloning this repository (https://github.com/JaCaMo-EASSS23/code). Java JDK 17+ and VSCode should be installed locally in this case.
+
+To run the initial project, type the commands below in the terminal:
+----
+cd lab1/smart-room-sa
+./gradlew
+----
+
+You can see how the system reacts to changes in temperature by opening another terminal and executing the command:
+
+----
+curl -X POST  http://localhost:8080/workspaces/room/artifacts/hvac/properties/temperature -H 'Content-Type: application/json' -d '[ 10 ]'
+----
+
+replacing the last number 10 by the current temperature of the room.
+
+
+=== Task 2: Reading and understanding agent programs
+
+* Exercise 1: open the code of the room controller agent (file `src/agt/room_controller.asl`), read the code and identify the beliefs, goals, and plans. Try to map the program to the observed behavior. 
+
+* Exercise 2: open the _mind inspector_ for agent `rc` and compare the beliefs there with those identified in the program. Are they the same? Are they represented the same way? 
+
+* Exercise 3: change the program so that the target temperature is 15.
+
+=== Task 3: Improve the implementation
+
+* Exercise 4: add a new plan to print the current state of the HVAC.
+
+* Exercise 5: change the plans of the previous exercise so that when the hvac state is `"cooling"` it is printed "so cool" and, when the state is `"heating"` it is printed "so hot".
+
+* Exercise 6: open the project in folder `lab1/e6` and take a look at the room controller program. There is a difference in the last lines (line 17). Evaluate the reasons for that modification and its problems. Some ideas about how to fix?
+
+* Exercise 7: open the project in folder `lab1/e7` and take a look at the room controller program. The target temperature is as an argument of goal `keep_temperature`. The project, as it is, works. But what happens if a line like `!keep_temperature(35)` is added in the program? Explain the behavior produced by this change.
+
+
+== Agent Communication (Lab 2)
+
+=== Task 1: Experiment different performatives
+
+* Exercise 1: open the project `lab2/e1`, read the `.jcm` file and the program of the two agents, and execute the application. Now change the plan of Bob to:
++
+----
++!start 
+   <- .send(alice, tell, hello);
+      .send(alice, tell, hello);
+   .
+----
++
+run the project again and notice the difference. Now change the plan again to
++
+----
++!start 
+   <- .send(alice, signal, hello);
+      .send(alice, signal, hello);
+   .
+----
++
+run the project again and notice the difference. 
+
+* Exercise 2: open the project `lab2/e2`, read the `.jcm` file and the program of the three agents, and execute the application. Use the mind inspector to see the beliefs of the agents (specially Alice). Now change the plan of Alice to:
++
+----
++!start
+   <- .wait(500);
+      .send(karlos, askOne, vl(_), vl(X));
+      .println(X).
+----
++
+run the project again and notice the difference. 
+
+* Exercise 3: open the project `lab2/e3`, read the program of the three agents, and execute the application. List the sequence of exchanged messages and their performatives. Finally, use the mind inspector "link of plans" (in the bottom of the page) to see the plans of Alice.
+
+
+=== Task 2: Improve the project for the voting protocol
+
+You can run the project with the following commands:
+----
+cd lab2/smart-room-ma
+./gradlew
+----
+
+* Exercise 4: change the list of options offered to the personal assistants. 
+
+* Exercise 5: run the voting protocol twice, with two different options and notice possible problems.
+
+* Exercise 6: currently, the `id` of the conversation is fixed to 1, this may cause problems when counting the votes. Change the program of the room controller so that the identification is an argument for the goal `voting`.
+
+* Exercise 7: upgrade the previous version so that the conversation id value is incremented each time a voting protocol is executed.
+
+* Exercise 8: add a new personal assistant. Does the application work properly? The rule `all_votes_received` is hard-coded for 3 participants. How to make it flexible? Think about possible solutions. Hints: see the internal actions link:https://jason.sourceforge.net/api/jason/stdlib/all_names.html[`.all_names`] and link:https://jason.sourceforge.net/api/jason/stdlib/df_register.html[`.df_register`].
+
+
+== Environment Dimension (Lab 3)
+
+We will now implement the voting mechanism as an artifact: agents will use a _voting machine_ artifact to select the target temperature for the shared room based on their individual preferences.
+
+Most of the code required for this practical session is already provided in the link:lab3/smart-room-vm[lab3/smart-room-vm] project. The following tasks will guide you through adding the last lines of code that will bring everything together.
+
+=== Task 1: Implement the usage interface for the voting machine
+
+The artifact template for our voting machine is defined in the link:lab3/smart-room-vm/src/env/voting/VotingMachine.java[VotingMachine.java] class, but the usage interface is not yet fully implemented. Your first task is to complete this implementation. The following sub-tasks will guide you through it, note also the `TODO` items marked in comments in the Java class.
+
+- Task 1.1: Your very first task is to complete the artifact's `init` method by defining an observable property `status` and setting its value to  `open`.
+- Task 1.2: Your second task is to complete the implementation of the `open`, `vote`, and `close` operations.
+
+To solve these tasks, you will have to define and work with observable properties. Tips for a quick start:
+
+- you can have a look at the implementation of the link:lab3/smart-room-vm/src/env/devices/HVAC.java[HVAC artifact]
+- you can check out https://cartago.sourceforge.net/?page_id=69[Example 01 — Artifact definition, creation, and use] from https://cartago.sourceforge.net/?page_id=47[CArtAgO by Examples]
+
+*Note:* The personal assistant agents are not yet expressing any votes. If you run the project at this point, the voting machine will always return the first option as the winning option (default behavior).
+
+=== Task 2: Instantiate and use the voting machine
+
+Your voting machine is now ready — and the room controller agent is, in fact, already using it (see link:lab3/smart-room-vm/src/agt/room_controller.asl[room_controller.asl]). Still, a few bits are missing:
+
+- Task 2.1: Your first task is to complete the `TODOs` defined in link:lab3/smart-room-vm/src/agt/personal_assistant.asl[personal_assistant.asl] so that agents can focus on the voting machine and vote for their preferences.
+
+- Task 2.2: The personal assistant agents are now expressing their votes, but still nothing is happening. That is because the voting is never closed. See the `TODO` on `line 33` of link:lab3/smart-room-vm/src/agt/room_controller.asl[room_controller.asl].
+
+To solve these tasks, you will need to use the `focus` operation and to invoke artifact operations defined by the voting machine. Tips for a quick start:
+
+* see Lines 19 in link:lab3/smart-room-vm/src/agt/room_controller.asl[room_controller.asl] for an example of using the `focus` operation
+
+* see Line 24 in link:lab3/smart-room-vm/src/agt/room_controller.asl[room_controller.asl] for an example of invoking the `open` operation of the voting machine
+
+* note: the voting machine is defined within the `vm::` namespace (see Lines 19 and 24 above for usage examples)
+
+=== Task 3: Implement automatic closing with a countdown
+
+Our agents are now using the voting machine to set the temperature in the shared room. At the moment, however, the room controller agent needs to invoke the `close` operation on the voting machine to close the voting — although the voting machine is already configured with a timeout.
+
+Your task is to complete the implementation of the voting machine's `countdown` internal operation (see Line 97 in link:lab3/smart-room-vm/src/env/voting/VotingMachine.java[VotingMachine.java]). For an example of a similar implementation, see https://cartago.sourceforge.net/?page_id=108[Example 06 — Internal operations and timed await: implementing a clock] from https://cartago.sourceforge.net/?page_id=47[CArtAgO by Examples].
+
+Once you finish implementing the internal operation, make sure to:
+
+* uncomment Line 57 in link:lab3/smart-room-vm/src/env/voting/VotingMachine.java[VotingMachine.java], which invokes the `countdown` internal operation
+
+* udpate the plan of the room controller agent for `+!voting(Options)` (see `TODOs`)
+
+=== Task 4: Implement a linked operation
+
+Your agents are happy with their brand new voting machine — and would like to showcase it to other agents via https://dweet.io/[Dweet.io]. Luckily, they already have a link:lab3/smart-room-vm/src/env/social/DweetArtifact.java[DweetArtifact] artifact template that they can use for this purpose.
+
+Your task is to complete the link:lab3/smart-room-vm/src/agt/room_controller.asl[room_controller.asl] agent program with the following steps (see `TODOs`):
+
+* Line 20: to create an instance of a `DweetArtifact` after creating the voting machine
+
+* Line 23: to link the voting machine to the newly created `DweetArtifact` using the operation `linkArtifacts(ArtId1, "port", ArtId2)`
+
+** note: the voting machine artifact template already defines an output port named `publish-port`
+
+** for further examples and documentation on linking artifacts, see https://cartago.sourceforge.net/?page_id=126[Example 08 — Linkability] from https://cartago.sourceforge.net/?page_id=47[CArtAgO by Examples]
+
+
+If you enjoyed this practical session, make sure to check out https://cartago.sourceforge.net/?page_id=47[CArtAgO by Examples] for a complete tour of all features supported for the enviornment dimension.
+
+
+== Organisation Dimension (Lab 4)
+
+=== Task 1: Reading and understanding an organization
+
+* Exercise 1: in this project the purpose is to coordinate the actions of agents when posting on a forum. There are two agents alice and bob; alice is responsible for posting a message and bob for retrieving the post. Open the project `lab4/e8`, read the `.jcm` file and the agents' program, and execute the application. Explain why is the displayed `Received message` content is empty? What does happen if `<- .wait(2000) ; retrievePost(-1) ;` replaces of line 7 in `src/agt/forum_agents.asl`?
+
+* Exercise 2: open the project `lab4/e9`, read the XML organization specification and identify the organization roles, goals, missions and norms. Execute the application, open the _organization inspector_ (http://localhost:3171) and verify the state of the agents' goals. What are the advantages and disadvantages of the organization approach to coordination compared with the approach in Exercise 1?
+
+* Exercise 3: comment out the lines 15-21 in `src/agt/forum_agents.asl` and execute the application. Use the _organization inspector_ to verify why the application does not execute properly. Hint: Look at the msg_vacation scheme.
+
+=== Task 2: Changing the organization
+
+* Exercise 1: open the project `lab4/smart-room-org`, execute the application and analyze the results of the group and scheme in the _organization inspector_.
+
+* Exercise 2: change the maximum number of `assistant` to 2. Execute the application. What is the outcome? Change the organization to solve the problem and keeping the maximum number of `assistant` to 2?
+
+* Exercise 3: change the order of `announce_options` and `open_voting` in the scheme `decide_temp`. What changes do you observe in the outcome?
+
+* Exercise 4: parallelize the execution of the `announce_options` and `open_voting`. Analyze the result of the new scheme in the _organization inspector_.
+
+* Exercise 5: replace line 14 in `src/agt/personal_assistant.asl` (`?options(Options)`) by `?vm::options(Options) ;`. This change allows to simplify the `decide_temp` scheme and the `src/agt/room_controller.asl` agent code. Identify and make the simplification.
+
+=== Task 3: Handling the state of the organization
+
+* Exercise 1: implement a plan in the `room_controller` agent that displays all fulfilled obligations. Hint: consider the organizational event `oblFulfilled/1`.
++
+----
+oblFulfilled(O) : Obligation O was fulfilled
+----
+
+* Exercise 2: implement a plan for the `personal_assistant` agents that reacts to the achievement of the organizational goal `closing_voting` by printing the current temperature. Hint: consider the organizational belief `goalState/5`.
++
+----
+goalState(S, G, LC, LA, T) : Goal G, of scheme S, is in state T (possible values for T are waiting, enabled, and satisfied); LC is the list of agents committed to the goal, and LA is the list of agents that have already achieved the goal.
+----
