@@ -1,13 +1,12 @@
 # Multi-Agent Oriented Programming Tutorial
 :toc: right
-:author: 23rd European Agent Systems Summer School
 :date: July 2023
 :source-highlighter: coderay
 :coderay-linenums-mode: inline
 :icons: font
 :prewrap!:
 
-This guide contains practical material for the tutorial _Multi-Agent Oriented Programming_ at https://easss23.fit.cvut.cz[23rd European Agent Systems Summer] School, 2023, Prague.
+This guide contains practical material for the tutorial _Multi-Agent Oriented Programming_ at link:https://easss23.fit.cvut.cz[23rd European Agent Systems Summer School], 2023, Prague, link:https://ai4industry2023.sciencesconf.org[2023 AI4Industry Summer School], 2023, Saint-Etienne, and link:https://ci.mines-stetienne.fr/ai4industry/2024/[2024 AI4Industry Summer School], 2024, Saint-Etienne.
 
 
 == Smart Room Scenario
@@ -28,7 +27,7 @@ image:doc/figs/smart-room1.png[]
 
 === Task 1: Run the initial project for the smart room scenario
 
-The simplest way to run the examples and do the exercises is by using https://gitpod.io/#https://github.com/JaCaMo-EASSS23/code[GitPod, following this link] (a github account is required). You can also work locally by cloning this repository (https://github.com/JaCaMo-EASSS23/code). Java JDK 17+ and VSCode should be installed locally in this case.
+The simplest way to run the examples and do the exercises is by using https://gitpod.io/#https://github.com/gnardin/ai4industry-code[GitPod, following this link] (a github account is required). You can also work locally by cloning this repository (https://github.com/gnardin/ai4industry-code). Java JDK 17+ and VSCode should be installed locally in this case.
 
 To run the initial project, type the commands below in the terminal:
 ----
